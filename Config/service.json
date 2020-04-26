@@ -1,0 +1,21 @@
+{
+    "gallery.install": {
+        "class": "SoosyzeExtension\\Gallery\\Installer",
+        "hooks": {
+            "install.node": "hookInstallNode"
+        }
+    },
+    "gallery.hook.app": {
+        "class": "SoosyzeExtension\\Gallery\\Service\\HookApp",
+        "arguments": ["@core"],
+        "hooks": {
+            "app.response.after": "hookResponseAfter"
+        }
+    },
+    "gallery.hook.node": {
+        "class": "SoosyzeExtension\\Gallery\\Service\\HookNode",
+        "hooks": {
+            "node.entity.picture_gallery.show": "hookNodeEntityPictureShow"
+        }
+    }
+}
