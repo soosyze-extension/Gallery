@@ -2,7 +2,7 @@
     "gallery.install": {
         "class": "SoosyzeExtension\\Gallery\\Installer",
         "hooks": {
-            "install.node": "hookInstallNode"
+            "install.user": "hookInstallUser"
         }
     },
     "gallery.hook.app": {

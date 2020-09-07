@@ -6,6 +6,6 @@ class HookNode
 {
     public function hookNodeEntityPictureShow(&$entity)
     {
-        $entity->pathOverride(dirname(__DIR__) . '/Views/');
+        $entity->addPathOverride(dirname(__DIR__) . '/Views/');
     }
 }
