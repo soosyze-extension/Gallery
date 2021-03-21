@@ -33,7 +33,7 @@
     padding: 1em;
     width: 100%;
     overflow: hidden;
-    text-overflow: ellipsis; 
+    text-overflow: ellipsis;
 }
 .card_gallery .overlay {
     cursor: zoom-in;

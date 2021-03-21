@@ -5,7 +5,7 @@ namespace SoosyzeExtension\Gallery;
 use Psr\Container\ContainerInterface;
 use Queryflatfile\TableBuilder;
 
-class Installer extends \SoosyzeCore\System\Migration
+class Extend extends \SoosyzeCore\System\ExtendModule
 {
     protected $pathContent;
 
@@ -14,24 +14,56 @@ class Installer extends \SoosyzeCore\System\Migration
         $this->pathContent = __DIR__ . '/Views/Content/';
     }
 
-    public function getDir()
-    {
-        return __DIR__ . '/composer.json';
-    }
-
     public function boot()
     {
         $this->loadTranslation('fr', __DIR__ . '/Lang/fr/main.json');
     }
 
+    public function getDir()
+    {
+        return __DIR__ . '/composer.json';
+    }
+
+    public function hookInstall(ContainerInterface $ci)
+    {
+        if ($ci->module()->has('User')) {
+            $this->hookInstallUser($ci);
+        }
+    }
+
+    public function hookInstallUser(ContainerInterface $ci)
+    {
+        $ci->query()
+            ->insertInto('role_permission', [ 'role_id', 'permission_id' ])
+            ->values([ 2, 'node.show.published.page_gallery' ])
+            ->values([ 1, 'node.show.published.page_gallery' ])
+            ->execute();
+    }
+
+    public function hookUninstall(ContainerInterface $ci)
+    {
+        if ($ci->module()->has('User')) {
+            $this->hookUninstallUser($ci);
+        }
+    }
+
+    public function hookUninstallUser(ContainerInterface $ci)
+    {
+        $ci->query()
+            ->from('role_permission')
+            ->delete()
+            ->where('permission_id', 'like', '%page_gallery%')
+            ->execute();
+    }
+
     public function install(ContainerInterface $ci)
     {
         $ci->schema()
-            ->createTableIfNotExists('entity_page_gallery', function (TableBuilder $table) {
+            ->createTableIfNotExists('entity_page_gallery', static function (TableBuilder $table) {
                 $table->increments('page_gallery_id')
                 ->text('body');
             })
-            ->createTableIfNotExists('entity_picture_gallery', function (TableBuilder $table) {
+            ->createTableIfNotExists('entity_picture_gallery', static function (TableBuilder $table) {
                 $table->increments('picture_gallery_id')
                 ->integer('page_gallery_id')
                 ->string('title')
@@ -46,41 +78,28 @@ class Installer extends \SoosyzeCore\System\Migration
             ->execute();
 
         /* Champs de la node. */
-        $idTitle  = $ci->query()
-                ->from('field')
-                ->where('field_name', 'title')
-                ->fetch()[ 'field_id' ];
-        $idImage  = $ci->query()
-                ->from('field')
-                ->where('field_name', 'image')
-                ->fetch()[ 'field_id' ];
-        $idWeight = $ci->query()
-                ->from('field')
-                ->where('field_name', 'weight')
-                ->fetch()[ 'field_id' ];
+        $idTitle  = $ci->query()->from('field')->where('field_name', 'title')->fetch()[ 'field_id' ];
+        $idImage  = $ci->query()->from('field')->where('field_name', 'image')->fetch()[ 'field_id' ];
+        $idWeight = $ci->query()->from('field')->where('field_name', 'weight')->fetch()[ 'field_id' ];
 
         /* Champs de l'entity. */
-        $idBody     = $ci->query()
-                ->from('field')
-                ->where('field_name', 'body')
-                ->fetch()[ 'field_id' ];
-        $idRelation = $ci->query()
-                ->from('field')
-                ->where('field_name', 'picture_gallery')
-                ->fetch()[ 'field_id' ];
+        $idBody     = $ci->query()->from('field')->where('field_name', 'body')->fetch()[ 'field_id' ];
+        $idRelation = $ci->query()->from('field')->where('field_name', 'picture_gallery')->fetch()[ 'field_id' ];
 
         $ci->query()
             ->insertInto('node_type', [
                 'node_type',
                 'node_type_name',
                 'node_type_description',
-                'node_type_icon'
+                'node_type_icon',
+                'node_type_color'
             ])
             ->values([
                 'node_type'             => 'page_gallery',
                 'node_type_name'        => 'Gallery',
                 'node_type_description' => 'Create an image gallery.',
-                'node_type_icon'        => 'fa fa-images'
+                'node_type_icon'        => 'fa fa-images',
+                'node_type_color'       => '#f6ffa8'
             ])
             ->execute();
 
@@ -127,58 +146,9 @@ class Installer extends \SoosyzeCore\System\Migration
     {
     }
 
-    public function hookInstall(ContainerInterface $ci)
-    {
-        $this->hookInstallUser($ci);
-    }
-
-    public function hookInstallUser(ContainerInterface $ci)
-    {
-        if ($ci->module()->has('User')) {
-            $ci->query()
-                ->insertInto('role_permission', [ 'role_id', 'permission_id' ])
-                ->values([ 2, 'node.show.published.page_gallery' ])
-                ->values([ 1, 'node.show.published.page_gallery' ])
-                ->execute();
-        }
-    }
-
     public function uninstall(ContainerInterface $ci)
     {
-        $ci->query()->from('node')
-            ->delete()
-            ->where('type', 'page_gallery')
-            ->execute();
-        $ci->query()->from('node_type_field')
-            ->delete()
-            ->where('node_type', 'page_gallery')
-            ->orWhere('node_type', 'picture_gallery')
-            ->execute();
-        $ci->query()->from('node_type')
-            ->delete()
-            ->where('node_type', 'page_gallery')
-            ->execute();
-        $ci->query()->from('field')
-            ->delete()
-            ->where('field_name', 'picture_gallery')
-            ->execute();
-        $ci->schema()->dropTable('entity_page_gallery');
-        $ci->schema()->dropTable('entity_picture_gallery');
-    }
-
-    public function hookUninstall(ContainerInterface $ci)
-    {
-        $this->hookUninstallUser($ci);
-    }
-
-    public function hookUninstallUser(ContainerInterface $ci)
-    {
-        if ($ci->module()->has('User')) {
-            $ci->query()
-                ->from('role_permission')
-                ->delete()
-                ->where('permission_id', 'like', '%page_gallery%')
-                ->execute();
-        }
+        $ci->node()->deleteAliasByType('page_gallery');
+        $ci->node()->deleteByType('page_gallery');
     }
 }

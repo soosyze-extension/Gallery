@@ -1,8 +1,8 @@
 <?php
 
-namespace SoosyzeExtension\Gallery\Service;
+namespace SoosyzeExtension\Gallery\Hook;
 
-class HookNode
+class Node
 {
     public function hookNodeEntityPictureShow(&$entity)
     {

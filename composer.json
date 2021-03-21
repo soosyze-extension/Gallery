@@ -1,8 +1,8 @@
 {
-    "name": "soosyze-extension/gallery",
+    "name": "soosyze/gallery",
     "type": "soosyze-module",
     "description": "Create an image gallery.",
-    "version": "1.0",
+    "version": "1.0.0",
     "autoload": {
         "psr-4": {
             "SoosyzeExtension\\Gallery\\": "/"
@@ -14,12 +14,20 @@
             "package": "Content",
             "controller": "SoosyzeExtension\\Gallery\\Controller\\Gallery",
             "require": {
-                "Node": "1.0"
+                "Node": "1.0.*"
             },
             "icon": {
                 "name": "fa fa-images",
                 "background-color": "#f6ffa8",
                 "color": "#4e5700"
+            },
+            "assets": {
+                "scripts": [
+                    "Assets/js/gallery.js"
+                ],
+                "styles": [
+                    "Assets/css/gallery.css"
+                ]
             }
         }
     }
